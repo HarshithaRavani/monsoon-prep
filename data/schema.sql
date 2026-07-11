@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS reports (
   type TEXT NOT NULL,
   location TEXT NOT NULL,
   description TEXT NOT NULL,
-  confidence INTEGER NOT NULL,
-  verified INTEGER NOT NULL,
+  source TEXT NOT NULL DEFAULT 'community-submission',
+  verification_status TEXT NOT NULL DEFAULT 'unverified',
   created_at TEXT NOT NULL
 );

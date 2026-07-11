@@ -19,12 +19,24 @@ main { padding: 24px; max-width: 1200px; margin: 0 auto; }
 .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
 .badge { display: inline-block; padding: 6px 10px; border-radius: 999px; background: #18a7ff; color: white; font-size: 0.9rem; }
 button { border: 0; border-radius: 12px; padding: 10px 14px; cursor: pointer; }
+button:disabled { cursor: wait; opacity: 0.65; }
 label { display: flex; align-items: center; gap: 8px; }
 .family-form { display: grid; gap: 12px; margin-bottom: 12px; }
 .family-form__field { display: grid; gap: 6px; align-items: start; }
 .family-form__input, .family-form__select { width: 100%; border: 1px solid rgba(255,255,255,0.24); border-radius: 10px; padding: 10px 12px; background: rgba(7, 17, 31, 0.5); color: inherit; }
 .family-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .family-member { padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.08); }
+.family-member { display: grid; gap: 8px; }
+.location-panel { margin-bottom: 16px; display: grid; gap: 12px; }
+.location-panel > button { justify-self: start; background: #18a7ff; color: #fff; }
+.location-search { display: grid; gap: 6px; max-width: 620px; }
+.location-search__row { display: flex; gap: 8px; }
+.location-search input, textarea { width: 100%; border: 1px solid rgba(255,255,255,0.24); border-radius: 10px; padding: 10px 12px; background: rgba(7,17,31,0.5); color: inherit; }
+.location-results { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.location-results button { width: 100%; text-align: left; }
+.data-status { padding: 10px 12px; border-left: 3px solid #18a7ff; background: rgba(24,167,255,0.1); }
+.live-results { margin-bottom: 20px; }
+.checklist { list-style: none; padding: 0; display: grid; gap: 10px; }
 .site-header { position: sticky; top: 0; z-index: 10; backdrop-filter: blur(12px); background: rgba(7, 17, 31, 0.85); border-bottom: 1px solid rgba(255,255,255,0.12); }
 .site-header__inner { max-width: 1200px; margin: 0 auto; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .site-brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }

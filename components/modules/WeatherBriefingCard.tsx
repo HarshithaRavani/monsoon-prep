@@ -39,6 +39,7 @@ export function WeatherBriefingCard({ briefing }: Props) {
       </div>
       <div className="weather-card__details">
         <p><strong>Recommended action:</strong> {briefing.nextAction}</p>
+        <p className="report-meta">Source: {briefing.source} · Observed: {briefing.observedAt}</p>
       </div>
     </section>
   );

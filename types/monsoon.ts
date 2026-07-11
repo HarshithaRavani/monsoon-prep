@@ -1,4 +1,4 @@
-export type DisasterType = 'flood' | 'cyclone' | 'heatwave' | 'wildfire' | 'earthquake';
+export type RiskLevel = 'Low' | 'Moderate' | 'High' | 'Severe';
 
 export interface WeatherMetric {
   label: string;
@@ -9,24 +9,18 @@ export interface WeatherMetric {
 export interface WeatherBriefing {
   title: string;
   summary: string;
-  riskLevel: 'Low' | 'Moderate' | 'High' | 'Severe';
+  riskLevel: RiskLevel;
   nextAction: string;
   location: string;
   temperature: string;
-  humidity: string;
-  aqi: string;
-  pollen: string;
-  uvIndex: string;
-  wind: string;
-  dewPoint: string;
-  pressure: string;
-  visibility: string;
   metrics: WeatherMetric[];
+  observedAt: string;
+  source: string;
 }
 
 export interface HouseholdRiskScore {
   score: number;
-  level: 'Low' | 'Moderate' | 'High' | 'Severe';
+  level: RiskLevel;
   explanation: string;
   preparednessLevel: string;
   priorityActions: string[];
@@ -34,24 +28,21 @@ export interface HouseholdRiskScore {
   recommendedSupplies: string[];
 }
 
-export interface CommunityReport {
-  id: string;
-  type: string;
-  location: string;
-  description: string;
-  confidence: number;
-  timestamp: string;
-  verified: boolean;
-}
-
 export interface EmergencyKit {
   title: string;
   items: string[];
 }
 
-export interface DisasterModuleConfig {
-  id: DisasterType;
-  label: string;
+export interface DashboardData {
+  briefing: WeatherBriefing;
+  risk: HouseholdRiskScore;
+  kit: EmergencyKit;
+}
+
+export interface CommunityReport {
+  id: string;
+  type: string;
+  location: string;
   description: string;
-  strategy: string;
+  timestamp: string;
 }

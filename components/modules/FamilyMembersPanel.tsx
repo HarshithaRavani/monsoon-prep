@@ -2,105 +2,44 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 
-type FamilyMember = {
-  id: number;
-  name: string;
-  status: string;
-};
-
-const defaultMembers: FamilyMember[] = [
-  { id: 1, name: 'Harshitha', status: 'online' },
-  { id: 2, name: 'Parent', status: 'safe' },
-  { id: 3, name: 'Sibling', status: 'at school pickup' },
-];
-
+type FamilyMember = { id: string; name: string; status: string; updatedAt: string };
 const storageKey = 'monsoon-prep-family-members';
 
 export function FamilyMembersPanel() {
-  const [members, setMembers] = useState<FamilyMember[]>(defaultMembers);
+  const [members, setMembers] = useState<FamilyMember[]>([]);
   const [name, setName] = useState('');
-  const [status, setStatus] = useState('safe');
-  const [isReady, setIsReady] = useState(false);
+  const [status, setStatus] = useState('Safe');
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    try {
-      const savedMembers = window.localStorage.getItem(storageKey);
-      if (savedMembers) {
-        const parsed = JSON.parse(savedMembers) as FamilyMember[];
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setMembers(parsed);
-        }
-      }
-    } catch {
-      // Ignore malformed storage and fall back to defaults.
-    } finally {
-      setIsReady(true);
-    }
+    try { setMembers(JSON.parse(window.localStorage.getItem(storageKey) || '[]')); } catch { setMembers([]); }
+    setReady(true);
   }, []);
+  useEffect(() => { if (ready) window.localStorage.setItem(storageKey, JSON.stringify(members)); }, [members, ready]);
 
-  useEffect(() => {
-    if (!isReady) return;
-    window.localStorage.setItem(storageKey, JSON.stringify(members));
-  }, [members, isReady]);
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = (event: FormEvent) => {
     event.preventDefault();
-    const trimmedName = name.trim();
-    if (!trimmedName) return;
-
-    setMembers((currentMembers) => [
-      {
-        id: Date.now(),
-        name: trimmedName,
-        status: status.trim() || 'safe',
-      },
-      ...currentMembers,
-    ]);
+    if (!name.trim()) return;
+    setMembers((current) => [{ id: crypto.randomUUID(), name: name.trim(), status, updatedAt: new Date().toISOString() }, ...current]);
     setName('');
-    setStatus('safe');
   };
 
-  return (
-    <div className="grid">
-      <article className="card">
-        <h2>Members</h2>
-        <form className="family-form" onSubmit={handleSubmit}>
-          <label className="family-form__field">
-            <span>Name</span>
-            <input
-              className="family-form__input"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="Add a family member"
-            />
-          </label>
-          <label className="family-form__field">
-            <span>Status</span>
-            <select className="family-form__select" value={status} onChange={(event) => setStatus(event.target.value)}>
-              <option value="safe">Safe</option>
-              <option value="online">Online</option>
-              <option value="at school pickup">At school pickup</option>
-              <option value="away">Away</option>
-            </select>
-          </label>
-          <button type="submit">Add member</button>
-        </form>
-        <ul className="family-list">
-          {members.map((member) => (
-            <li key={member.id} className="family-member">
-              <strong>{member.name}</strong> — {member.status}
-            </li>
-          ))}
-        </ul>
-      </article>
-      <article className="card">
-        <h2>Shared checklist</h2>
-        <ul>
-          <li>Charge phones and power banks</li>
-          <li>Store water and medicines</li>
-          <li>Confirm backup contacts</li>
-        </ul>
-      </article>
-    </div>
-  );
+  const updateStatus = (id: string, nextStatus: string) => setMembers((current) => current.map((member) => member.id === id ? { ...member, status: nextStatus, updatedAt: new Date().toISOString() } : member));
+
+  return <article className="card">
+    <h2>Family status board</h2>
+    <p>Only members you add are shown. Updates are stored on this device.</p>
+    <form className="family-form" onSubmit={submit}>
+      <label className="family-form__field"><span>Name</span><input className="family-form__input" value={name} onChange={(event) => setName(event.target.value)} required placeholder="Family member name" /></label>
+      <label className="family-form__field"><span>Status</span><select className="family-form__select" value={status} onChange={(event) => setStatus(event.target.value)}><option>Safe</option><option>Needs help</option><option>Travelling</option><option>Unreachable</option></select></label>
+      <button type="submit">Add member</button>
+    </form>
+    {ready && members.length === 0 && <p className="data-status">No family members added yet.</p>}
+    <ul className="family-list">{members.map((member) => <li key={member.id} className="family-member">
+      <strong>{member.name}</strong>
+      <select aria-label={`Status for ${member.name}`} value={member.status} onChange={(event) => updateStatus(member.id, event.target.value)}><option>Safe</option><option>Needs help</option><option>Travelling</option><option>Unreachable</option></select>
+      <small>Updated {new Date(member.updatedAt).toLocaleString()}</small>
+      <button type="button" onClick={() => setMembers((current) => current.filter((item) => item.id !== member.id))}>Remove</button>
+    </li>)}</ul>
+  </article>;
 }
