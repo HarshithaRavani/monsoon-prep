@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { WeatherBriefingCard } from '@/components/modules/WeatherBriefingCard';
 import { RiskScoreCard } from '@/components/modules/RiskScoreCard';
 import { EmergencyKitCard } from '@/components/modules/EmergencyKitCard';
+import { AiGuidancePanel } from '@/components/modules/AiGuidancePanel';
 import type { DashboardData } from '@/types/monsoon';
 
 type Place = { id?: number; label: string; latitude: number; longitude: number };
@@ -15,6 +16,7 @@ export function LiveDashboard({ compact = false }: { compact?: boolean }) {
   const [results, setResults] = useState<Place[]>([]);
   const [status, setStatus] = useState('Choose “Use my location” or search for a city to load current weather data.');
   const [loading, setLoading] = useState(false);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   const loadPlace = useCallback(async (place: Place) => {
     setLoading(true);
@@ -26,6 +28,7 @@ export function LiveDashboard({ compact = false }: { compact?: boolean }) {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || 'Weather request failed.');
       setData(payload as DashboardData);
+      setSelectedPlace(place);
       window.localStorage.setItem(locationKey, JSON.stringify(place));
       setStatus('');
     } catch (error) {
@@ -94,6 +97,7 @@ export function LiveDashboard({ compact = false }: { compact?: boolean }) {
         <RiskScoreCard risk={data.risk} />
         {!compact && <EmergencyKitCard kit={data.kit} />}
       </div>}
+      {data && selectedPlace && !compact && <AiGuidancePanel place={selectedPlace} />}
     </section>
   );
 }

@@ -39,6 +39,19 @@ export interface DashboardData {
   kit: EmergencyKit;
 }
 
+export type PreparednessPhase = 'before' | 'during' | 'after';
+
+export interface AiGuidance {
+  headline: string;
+  riskSummary: string;
+  personalizedPlan: string[];
+  emergencyChecklist: string[];
+  travelAdvisory: string;
+  safetyRecommendations: string[];
+  alerts: string[];
+  disclaimer: string;
+}
+
 export interface CommunityReport {
   id: string;
   type: string;

@@ -1,4 +1,6 @@
-import type { DashboardData, EmergencyKit, HouseholdRiskScore, RiskLevel, WeatherBriefing } from '@/types/monsoon';
+import type { DashboardData, WeatherBriefing } from '@/types/monsoon';
+import { buildRiskAssessment } from '@/lib/risk-engine';
+import { formatCoordinateLabel } from '@/lib/validation';
 
 type LocationInput = { latitude: number; longitude: number; label?: string };
 
@@ -25,17 +27,6 @@ const weatherDescriptions: Record<number, string> = {
   96: 'thunderstorms with hail', 99: 'severe thunderstorms with hail',
 };
 
-function severity(score: number): RiskLevel {
-  if (score >= 80) return 'Severe';
-  if (score >= 60) return 'High';
-  if (score >= 35) return 'Moderate';
-  return 'Low';
-}
-
-function locationLabel({ latitude, longitude, label }: LocationInput) {
-  return label?.trim() || `${latitude.toFixed(3)}°, ${longitude.toFixed(3)}°`;
-}
-
 export async function getDashboardData(location: LocationInput): Promise<DashboardData> {
   const params = new URLSearchParams({
     latitude: String(location.latitude),
@@ -61,25 +52,14 @@ export async function getDashboardData(location: LocationInput): Promise<Dashboa
   const rain = current.precipitation;
   const wind = current.wind_speed_10m ?? 0;
   const code = current.weather_code ?? 0;
-  const score = Math.min(100, Math.round(rain * 7 + chance * 0.45 + wind * 0.7 + (code >= 95 ? 25 : 0)));
-  const level = severity(score);
-  const place = locationLabel(location);
-  const priorityActions = [
-    ...(rain >= 5 || chance >= 60 ? ['Avoid waterlogged routes and monitor official local alerts'] : []),
-    ...(wind >= 35 ? ['Secure loose outdoor objects and stay clear of trees'] : []),
-    ...(code >= 95 ? ['Move indoors and avoid exposed areas during thunderstorms'] : []),
-    'Keep phones charged and emergency contacts available',
-  ];
-  const supplies = [
-    'Drinking water', 'Essential medicines', 'Phone charger', 'Flashlight', 'Copies of documents',
-    ...(rain >= 5 ? ['Waterproof bags', 'Rain protection'] : []),
-  ];
+  const place = formatCoordinateLabel(location.latitude, location.longitude, location.label);
+  const { risk, kit } = buildRiskAssessment({ precipitation: rain, rainProbability: chance, windSpeed: wind, weatherCode: code, location: place });
 
   const briefing: WeatherBriefing = {
     title: 'Current weather conditions',
     summary: `${place} currently has ${weatherDescriptions[code] ?? 'reported weather conditions'}, ${current.temperature_2m}°C, ${rain} mm precipitation, and a ${chance}% forecast rain probability.`,
-    riskLevel: level,
-    nextAction: priorityActions[0],
+    riskLevel: risk.level,
+    nextAction: risk.priorityActions[0],
     location: place,
     temperature: `${current.temperature_2m}°C`,
     metrics: [
@@ -95,15 +75,5 @@ export async function getDashboardData(location: LocationInput): Promise<Dashboa
     source: 'Open-Meteo forecast API',
   };
 
-  const risk: HouseholdRiskScore = {
-    score,
-    level,
-    explanation: `Calculated from current precipitation, forecast rain probability, wind speed, and weather code for ${place}.`,
-    preparednessLevel: score >= 70 ? 'Action needed' : score >= 35 ? 'Review recommended' : 'Routine readiness',
-    priorityActions,
-    evacuationReadiness: score >= 70 ? 'Review official evacuation guidance' : 'No weather-triggered evacuation signal',
-    recommendedSupplies: supplies,
-  };
-  const kit: EmergencyKit = { title: `Suggested kit for ${place}`, items: supplies };
   return { briefing, risk, kit };
 }

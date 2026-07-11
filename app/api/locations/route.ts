@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
+import { normalizeLocationQuery } from '@/lib/validation';
 
 export async function GET(request: NextRequest) {
-  const name = request.nextUrl.searchParams.get('name')?.trim();
-  if (!name || name.length < 2) return Response.json({ error: 'Enter at least two characters.' }, { status: 400 });
+  const name = normalizeLocationQuery(request.nextUrl.searchParams.get('name'));
+  if (!name) return Response.json({ error: 'Enter between 2 and 100 characters.' }, { status: 400 });
   try {
     const params = new URLSearchParams({ name, count: '8', language: 'en', format: 'json' });
     const response = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`, { cache: 'no-store', signal: AbortSignal.timeout(5000) });

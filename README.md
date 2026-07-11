@@ -2,6 +2,8 @@
 
 Monsoon Prep is a responsive household preparedness and community-assistance app built with Next.js. It combines live weather context, risk guidance, emergency planning, community reports, and family coordination in one dashboard.
 
+Every push to `main` is validated by GitHub Actions with linting, 19 automated unit tests, TypeScript checking, and a production build.
+
 ## Features
 
 - **Location-aware weather briefing** powered by Open-Meteo. Use browser location or search for any city worldwide.
@@ -13,6 +15,8 @@ Monsoon Prep is a responsive household preparedness and community-assistance app
 - **Family dashboard** for adding, updating, and removing real household members. Family data is saved in the browser with `localStorage`.
 - **Accessibility preferences** for large text, high contrast, and reduced motion. Preferences persist in the browser.
 - **Persistent readiness checklist** that records the user's actual progress.
+- **Real Gemini guidance** based on fresh weather and user-provided household needs, with structured personalized plans, emergency checklists, travel advisories, safety recommendations, and alerts for before, during, or after severe weather.
+- **Multilingual AI output** in English, Hindi, Kannada, Tamil, Telugu, or Marathi.
 - **Installable app metadata** through a web app manifest, plus responsive layouts for desktop and mobile.
 
 ## Pages
@@ -32,6 +36,7 @@ Monsoon Prep is a responsive household preparedness and community-assistance app
 | `/api/health` | `GET` | Returns the service health status |
 | `/api/dashboard` | `GET` | Validates coordinates and returns Open-Meteo conditions with calculated risk guidance |
 | `/api/locations` | `GET` | Searches real places through Open-Meteo geocoding |
+| `/api/ai-guidance` | `POST` | Refreshes weather and requests structured, personalized guidance from Gemini |
 
 The app does not claim to provide authentication or a persistent cloud database. User-created records are clearly stored only on the current device.
 
@@ -61,7 +66,16 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-No environment variables are required. The app requests public weather and geocoding data from Open-Meteo. If that service cannot be reached, the UI reports the error and does not substitute sample weather.
+Weather and geocoding require no environment variables. Gemini guidance requires a server-only `GEMINI_API_KEY`; copy `.env.example` to `.env.local` for local development. If either external service cannot be reached, the UI reports the error and does not substitute sample output.
+
+Create a Gemini API key in Google AI Studio, then add it locally or as a Vercel environment variable:
+
+```bash
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-2.5-flash
+```
+
+Never prefix the key with `NEXT_PUBLIC_`; the Gemini request is intentionally performed only by the server route.
 
 ## Available scripts
 
@@ -70,7 +84,13 @@ npm run dev    # Start the development server
 npm run build  # Create a production build
 npm run start  # Start the production server
 npm run lint   # Run Next.js linting
+npm test       # Run automated unit tests
+npm run check  # Run lint, tests, and a production build
 ```
+
+## Testing
+
+The project uses Node's built-in test runner, so no additional testing framework is required. Automated tests cover risk-score boundaries, severity classification, weather-triggered actions and supplies, coordinate validation, location-query normalization, AI request validation, prompt grounding, and injection-resistance instructions. Run the full submission-quality gate with `npm run check`.
 
 ## Data model
 
